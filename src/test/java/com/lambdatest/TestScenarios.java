@@ -1,34 +1,55 @@
 package com.lambdatest;
 
 
-import java.net.MalformedURLException;
-import java.util.HashMap;
-
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 public class TestScenarios {
-	private WebDriver driver;
+    private WebDriver driver;
     private PlaygroundHomePage homePage;
     private SimpleFormDemoPage simpleFormDemoPage;
     private SliderPage sliderPage;
     private InputFormSubmitPage inputFormSubmitPage;
-    private ChromeOptions browserOptions;
 
-    @BeforeClass
-    public void setUp() throws MalformedURLException {
-        driver = new ChromeDriver();
-       homePage = new PlaygroundHomePage(driver);
-       simpleFormDemoPage = new SimpleFormDemoPage(driver);
-       sliderPage = new SliderPage(driver);
-       inputFormSubmitPage = new InputFormSubmitPage(driver);
-       browserOptions = setupChromeOptions();
+    @Parameters(value = {"browser", "version"})
+    @BeforeTest
+    public void setUp(String browser, String version) throws Exception {
+
+        if (browser.equalsIgnoreCase("Chrome")) {
+            driver = new ChromeDriver();
+        } else {
+            driver = new EdgeDriver();
+        }
+
+
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+
+        // set desired capabilities to launch appropriate browser on Lambdatest
+        capabilities.setCapability(CapabilityType.BROWSER_NAME, browser);
+        capabilities.setCapability(CapabilityType.BROWSER_VERSION, version);
+        capabilities.setCapability(CapabilityType.PLATFORM_NAME, Platform.WIN11);
+        capabilities.setCapability("build", "TestNG Parallel");
+        capabilities.setCapability("build", "buildName");
+        capabilities.setCapability("name", "TestNG Parallel");
+        capabilities.setCapability("network", true);
+        capabilities.setCapability("video", true);
+        capabilities.setCapability("console", true);
+        capabilities.setCapability("visual", true);
+        System.out.println("capabilities" + capabilities);
+
+        homePage = new PlaygroundHomePage(driver);
+        simpleFormDemoPage = new SimpleFormDemoPage(driver);
+        sliderPage = new SliderPage(driver);
+        inputFormSubmitPage = new InputFormSubmitPage(driver);
+
     }
 
     @Test(priority = 1)
@@ -39,7 +60,7 @@ public class TestScenarios {
         simpleFormDemoPage.enterMessageAndValidate();
     }
 
-   @Test(priority = 2)
+    @Test(priority = 2)
     public void testScenario2() {
         homePage.openPage();
         homePage.navigateToSliderPage();
@@ -53,27 +74,9 @@ public class TestScenarios {
         inputFormSubmitPage.fillFormAndSubmit();
         inputFormSubmitPage.validateSuccessMessage();
     }
-    
-    public ChromeOptions setupChromeOptions() throws MalformedURLException {
 
-    	ChromeOptions browserOptions = new ChromeOptions();
-    	browserOptions.setPlatformName("Windows 10");
-    	browserOptions.setBrowserVersion("123.0");
-    	HashMap<String, Object> ltOptions = new HashMap<String, Object>();
-    	ltOptions.put("username", "vaidya.mansi95@gmail.com");
-    	ltOptions.put("accessKey", "924134");
-    	ltOptions.put("visual", true);
-    	ltOptions.put("video", true);
-    	ltOptions.put("network", true);
-    	ltOptions.put("project", "Untitled");
-    	ltOptions.put("tunnel", true);
-    	ltOptions.put("selenium_version", "4.0.0");
-    	ltOptions.put("w3c", true);
-    	browserOptions.setCapability("LT:Options", ltOptions);
-    	return browserOptions;
-    }
 
-  @AfterClass
+    @AfterTest
     public void tearDown() {
         driver.quit();
     }
